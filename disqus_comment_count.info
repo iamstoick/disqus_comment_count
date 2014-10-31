@@ -1,0 +1,5 @@
+name = Disqus Comment Sorter
+description = Allows Views to sort the comment by number of comments.
+package = Gamecrate
+version = 7.x-1.0
+core = 7.x

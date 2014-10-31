@@ -1,0 +1,53 @@
+<?php
+/**
+ * @file
+ * disqus_comment_count.module
+ */
+
+/**
+ * Implements hook_view_api().
+ */
+function disqus_comment_count_views_api() {
+  return array('api' => 3);
+}
+
+
+/**
+ * Implements hook_cron().
+ */
+function disqus_comment_count_cron() {
+  // Assumes the Disqus module is installed.
+  // Could be made into module admin settings if it is not.
+  $secret_key = check_plain(variable_get('disqus_secretkey', ''));
+  $forum = check_plain(variable_get('disqus_domain', ''));
+  // According to Disqus api: disqus.com/api/docs/threads/listPopular/
+  // acceptable interval options are: 1h, 6h, 12h, 1d, 3d, 7d, 30d, 90d.
+  $interval = '1d';
+  // Hard-coding one day, but could make this an admin setting.
+  // Using the Disqus php api downloaded to sites/all/libraries from
+  // github.com/disqus/disqus-php.
+  $path = libraries_get_path('disqusapi');
+  require $path . '/disqusapi/disqusapi.php';
+  $disqus = new DisqusAPI($secret_key);
+  $data = array();
+  // Will hold return data.
+  try {
+    $data = $disqus->threads->listPopular(array(
+      'forum' => $forum,
+      'interval' => $interval,
+    ));
+  }
+  catch (Exception $e) {
+    // Log or throw exception.
+  }
+
+  if (!empty($data)) {
+    // Clear out the table and insert new rows.
+    db_query('delete from {disqus_comment_count}');
+    foreach ($data as $comment_info) {
+      $nid = str_replace('node/', '', $comment_info->identifiers[0]);
+      $record = array('nid' => $nid, 'count' => $comment_info->posts);
+      drupal_write_record('disqus_comment_count', $record);
+    }
+  }
+}

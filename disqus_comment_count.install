@@ -1,0 +1,40 @@
+<?php
+/**
+ * @file
+ * disqus_comment_count.install
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function disqus_comment_count_schema() {
+  $schema = array();
+  $schema['disqus_comment_count'] = array(
+    'description' => 'Stores counts from disqus',
+    'fields' => array(
+      'nid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'nid of related node',
+      ),
+      'count' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'number of reads',
+      ),
+    ),
+    'indexes' => array(
+      'disqus_comment_count_nid' => array(
+        'nid',
+      ),
+      'disqus_comment_count_count' => array(
+        'count',
+      ),
+    ),
+    'primary key' => array(
+      'nid',
+    ),
+  );
+
+  return $schema;
+}
